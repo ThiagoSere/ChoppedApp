@@ -3,9 +3,10 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { AuthModule } from './auth/auth.module';
+import { ExercisesModule } from './exercises/exercises.module';
 import { UsersModule } from './users/users.module';
 import { WorkoutsModule } from './workouts/workouts.module';
-import { ExercisesModule } from './exercises/exercises.module';
 
 @Module({
   imports: [
@@ -24,11 +25,12 @@ import { ExercisesModule } from './exercises/exercises.module';
         password: configService.get<string>('DB_PASS', 'postgres'),
         database: configService.get<string>('DB_NAME', 'chopped'),
         entities: [__dirname + '/**/*.entity{.ts,.js}'],
-        synchronize: true, // En desarrollo; desactivar en producción
-        logging: true, // Para debug, desactivar en producción
+        synchronize: true,
+        logging: true,
       }),
     }),
     UsersModule,
+    AuthModule,
     WorkoutsModule,
     ExercisesModule,
   ],

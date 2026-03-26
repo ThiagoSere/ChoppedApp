@@ -1,0 +1,258 @@
+import { useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import api from '../services/api';
+import '../styles/CreateWorkout.css';
+
+export default function CreateWorkoutPage() {
+  const navigate = useNavigate();
+
+  const [workoutName, setWorkoutName] = useState('');
+  const [search, setSearch] = useState('');
+  const [searching, setSearching] = useState(false);
+  const [searchResults, setSearchResults] = useState([]);
+  const [selectedExercises, setSelectedExercises] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [previewGifUrl, setPreviewGifUrl] = useState('');
+
+  const normalizedSearch = useMemo(() => search.trim(), [search]);
+
+  const searchExercises = async () => {
+    if (!normalizedSearch) return;
+    setSearching(true);
+    setError('');
+
+    try {
+      const { data } = await api.get('/exercises/search', {
+        params: { q: normalizedSearch, limit: 5 },
+      });
+      setSearchResults(Array.isArray(data) ? data : []);
+    } catch (err) {
+      const msg = err?.response?.data?.message;
+      setError(Array.isArray(msg) ? msg.join(', ') : msg || 'Error al buscar ejercicios');
+    } finally {
+      setSearching(false);
+    }
+  };
+
+  const addExercise = (exercise) => {
+    const exists = selectedExercises.some((e) => e.exerciseId === exercise.exerciseId);
+    if (exists) return;
+
+    setSelectedExercises((prev) => [
+      ...prev,
+      {
+        exerciseId: exercise.exerciseId,
+        name: exercise.name,
+        bodyPart: exercise.bodyPart || '',
+        equipment: exercise.equipment || '',
+        target: exercise.target || '',
+        gifUrl: exercise.gifUrl || '',
+        sets: 3,
+        reps: '10-12',
+      },
+    ]);
+  };
+
+  const removeExercise = (exerciseId) => {
+    setSelectedExercises((prev) => prev.filter((e) => e.exerciseId !== exerciseId));
+  };
+
+  const updateExerciseField = (exerciseId, field, value) => {
+    setSelectedExercises((prev) =>
+      prev.map((e) =>
+        e.exerciseId === exerciseId
+          ? { ...e, [field]: field === 'sets' ? Number(value) : value }
+          : e,
+      ),
+    );
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
+
+    if (!workoutName.trim()) {
+      setError('El nombre de la rutina es obligatorio');
+      return;
+    }
+
+    if (selectedExercises.length === 0) {
+      setError('Agrega al menos un ejercicio');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      // Se guarda sin gifUrl para no romper validaciones del backend
+      const payloadExercises = selectedExercises.map(({ gifUrl, ...rest }) => rest);
+
+      await api.post('/workouts', {
+        name: workoutName.trim(),
+        exercises: payloadExercises,
+      });
+      navigate('/workouts');
+    } catch (err) {
+      const msg = err?.response?.data?.message;
+      setError(Array.isArray(msg) ? msg.join(', ') : msg || 'Error al crear rutina');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="page-content">
+      <div className="create-workout-container">
+        <div className="create-workout-card">
+          <h2>Crear Nueva Rutina</h2>
+
+          <form className="create-workout-form" onSubmit={handleSubmit}>
+            <div className="form-group">
+              <label>Nombre de la rutina *</label>
+              <input
+                type="text"
+                value={workoutName}
+                onChange={(e) => setWorkoutName(e.target.value)}
+                required
+                placeholder="Ej: Pecho y triceps"
+                className="form-input"
+              />
+            </div>
+
+            <div className="search-box">
+              <h3>Buscar ejercicios por musculo o nombre</h3>
+              <div className="muscle-hint">
+                Ejemplos: pecho, espalda, piernas, hombros, biceps, triceps
+              </div>
+
+              <div className="search-row">
+                <input
+                  type="text"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="Ej: pecho"
+                  className="form-input"
+                />
+                <button type="button" onClick={searchExercises} className="secondary-btn" disabled={searching}>
+                  {searching ? 'Buscando...' : 'Buscar'}
+                </button>
+              </div>
+
+              {searchResults.length > 0 && (
+                <div className="results-list">
+                  {searchResults.map((ex) => (
+                    <div key={ex.exerciseId} className="result-item">
+                      <div>
+                        <strong>{ex.name}</strong>
+                        <p>{ex.bodyPart} | {ex.target} | {ex.equipment}</p>
+                      </div>
+                      <div className="result-actions">
+                        <button
+                          type="button"
+                          onClick={() => setPreviewGifUrl(ex.gifUrl || '')}
+                          className="secondary-btn"
+                          disabled={!ex.gifUrl}
+                        >
+                          Ver GIF
+                        </button>
+                        <button type="button" onClick={() => addExercise(ex)} className="add-btn">
+                          Agregar
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="selected-section">
+              <h3>Ejercicios de la rutina</h3>
+              {selectedExercises.length === 0 ? (
+                <p className="empty-text">No hay ejercicios agregados.</p>
+              ) : (
+                <div className="selected-table-wrap">
+                  <table className="exercise-table">
+                    <thead>
+                      <tr>
+                        <th>Ejercicio</th>
+                        <th>Musculo</th>
+                        <th>Equipo</th>
+                        <th>Series</th>
+                        <th>Reps</th>
+                        <th>GIF</th>
+                        <th>Accion</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {selectedExercises.map((ex) => (
+                        <tr key={ex.exerciseId}>
+                          <td>{ex.name}</td>
+                          <td>{ex.bodyPart || '-'}</td>
+                          <td>{ex.equipment || '-'}</td>
+                          <td>
+                            <input
+                              type="number"
+                              min="1"
+                              value={ex.sets}
+                              onChange={(e) => updateExerciseField(ex.exerciseId, 'sets', e.target.value)}
+                              className="small-input"
+                            />
+                          </td>
+                          <td>
+                            <input
+                              type="text"
+                              value={ex.reps}
+                              onChange={(e) => updateExerciseField(ex.exerciseId, 'reps', e.target.value)}
+                              className="small-input"
+                            />
+                          </td>
+                          <td>
+                            <button
+                              type="button"
+                              className="secondary-btn"
+                              onClick={() => setPreviewGifUrl(ex.gifUrl || '')}
+                              disabled={!ex.gifUrl}
+                            >
+                              Ver
+                            </button>
+                          </td>
+                          <td>
+                            <button type="button" className="danger-btn" onClick={() => removeExercise(ex.exerciseId)}>
+                              Quitar
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+
+            {error && <p className="error-msg">{error}</p>}
+
+            <div className="form-actions">
+              <button type="button" onClick={() => navigate('/dashboard')} className="cancel-btn">
+                Volver
+              </button>
+              <button type="submit" disabled={loading} className="submit-btn">
+                {loading ? 'Creando...' : 'Crear Rutina'}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      {previewGifUrl && (
+        <div className="gif-overlay" onClick={() => setPreviewGifUrl('')}>
+          <div className="gif-modal" onClick={(e) => e.stopPropagation()}>
+            <button type="button" className="gif-close" onClick={() => setPreviewGifUrl('')}>
+              ×
+            </button>
+            <img src={previewGifUrl} alt="Movimiento del ejercicio" className="gif-image" />
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

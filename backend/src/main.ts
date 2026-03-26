@@ -8,16 +8,22 @@ async function bootstrap() {
   // Validación global de DTOs
   app.useGlobalPipes(
     new ValidationPipe({
-      whitelist: true, // Elimina propiedades no definidas en DTOs
-      forbidNonWhitelisted: true, // Rechaza si envían propiedades extra
-      transform: true, // Transforma tipos (ej: string '123' → number 123)
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      transform: true,
       transformOptions: {
         enableImplicitConversion: true,
       },
     }),
   );
 
-  const port = process.env.PORT || 3000;
+  // CORS habilitado
+  app.enableCors({
+    origin: 'http://localhost:3000',
+    credentials: true,
+  });
+
+  const port = process.env.PORT || 3001;
   await app.listen(port);
   console.log(`✅ App escuchando en puerto ${port}`);
 }
