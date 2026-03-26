@@ -21,9 +21,6 @@ export class WorkoutsService {
     return {
       id: workout.id,
       name: workout.name,
-      description: workout.description,
-      duration: workout.duration,
-      difficulty: workout.difficulty,
       exercises: workout.exercises ?? [],
       userId: workout.userId,
       createdAt: workout.createdAt,
@@ -43,7 +40,6 @@ export class WorkoutsService {
     const saved = await this.workoutsRepository.save(workout);
     const savedWorkout = Array.isArray(saved) ? saved[0] : saved;
     return this.toResponseDto(savedWorkout);
-
   }
 
   async findAllByUser(userId: string): Promise<WorkoutResponseDto[]> {

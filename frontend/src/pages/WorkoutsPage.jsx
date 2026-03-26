@@ -44,12 +44,8 @@ export default function WorkoutsPage() {
         <div className="workouts-header">
           <h1>Mis Rutinas</h1>
           <div className="workouts-header-actions">
-            <button onClick={() => navigate('/dashboard')} className="ghost-btn">
-              Volver
-            </button>
-            <button onClick={() => navigate('/workouts/crear')} className="create-btn">
-              Crear Nueva Rutina
-            </button>
+            <button onClick={() => navigate('/dashboard')} className="ghost-btn">Volver</button>
+            <button onClick={() => navigate('/workouts/crear')} className="create-btn">Crear Nueva Rutina</button>
           </div>
         </div>
 
@@ -68,9 +64,7 @@ export default function WorkoutsPage() {
                     <tr>
                       <th>Ejercicio</th>
                       <th>Musculo</th>
-                      <th>Equipo</th>
-                      <th>Series</th>
-                      <th>Reps</th>
+                      <th>GIF</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -79,20 +73,30 @@ export default function WorkoutsPage() {
                         <tr key={`${workout.id}-${ex.exerciseId}`}>
                           <td>{ex.name}</td>
                           <td>{ex.bodyPart || '-'}</td>
-                          <td>{ex.equipment || '-'}</td>
-                          <td>{ex.sets}</td>
-                          <td>{ex.reps}</td>
+                          <td>
+                            {ex.gifUrl ? (
+                              <img className="table-gif" src={ex.gifUrl} alt={ex.name} />
+                            ) : (
+                              '-'
+                            )}
+                          </td>
                         </tr>
                       ))
                     ) : (
                       <tr>
-                        <td colSpan={5}>Sin ejercicios cargados</td>
+                        <td colSpan={3}>Sin ejercicios cargados</td>
                       </tr>
                     )}
                   </tbody>
                 </table>
 
                 <div className="workout-actions">
+                  <button onClick={() => navigate(`/workouts/${workout.id}/train`)} className="train-btn">
+                    Entrenar
+                  </button>
+                  <button onClick={() => navigate(`/workouts/${workout.id}/edit`)} className="edit-btn">
+                    Editar
+                  </button>
                   <button onClick={() => deleteWorkout(workout.id)} className="delete-btn">
                     Eliminar
                   </button>

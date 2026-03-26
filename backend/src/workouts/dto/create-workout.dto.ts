@@ -1,21 +1,36 @@
 import {
   IsArray,
   IsNotEmpty,
+  IsOptional,
   IsString,
   ValidateNested,
-  IsInt,
-  Min,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 
 class WorkoutExerciseItemDto {
-  @IsString() @IsNotEmpty() exerciseId: string;
-  @IsString() @IsNotEmpty() name: string;
-  @IsString() bodyPart?: string;
-  @IsString() equipment?: string;
-  @IsString() target?: string;
-  @IsInt() @Min(1) sets: number;
-  @IsString() @IsNotEmpty() reps: string;
+  @IsString()
+  @IsNotEmpty()
+  exerciseId: string;
+
+  @IsString()
+  @IsNotEmpty()
+  name: string;
+
+  @IsOptional()
+  @IsString()
+  bodyPart?: string;
+
+  @IsOptional()
+  @IsString()
+  equipment?: string;
+
+  @IsOptional()
+  @IsString()
+  target?: string;
+
+  @IsOptional()
+  @IsString()
+  gifUrl?: string;
 }
 
 export class CreateWorkoutDto {

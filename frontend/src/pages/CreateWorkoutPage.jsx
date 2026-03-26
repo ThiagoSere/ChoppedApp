@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import '../styles/CreateWorkout.css';
@@ -13,18 +13,15 @@ export default function CreateWorkoutPage() {
   const [selectedExercises, setSelectedExercises] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [previewGifUrl, setPreviewGifUrl] = useState('');
-
-  const normalizedSearch = useMemo(() => search.trim(), [search]);
 
   const searchExercises = async () => {
-    if (!normalizedSearch) return;
+    if (!search.trim()) return;
     setSearching(true);
     setError('');
 
     try {
       const { data } = await api.get('/exercises/search', {
-        params: { q: normalizedSearch, limit: 5 },
+        params: { q: search.trim(), limit: 5 },
       });
       setSearchResults(Array.isArray(data) ? data : []);
     } catch (err) {
@@ -84,12 +81,9 @@ export default function CreateWorkoutPage() {
 
     setLoading(true);
     try {
-      // Se guarda sin gifUrl para no romper validaciones del backend
-      const payloadExercises = selectedExercises.map(({ gifUrl, ...rest }) => rest);
-
       await api.post('/workouts', {
         name: workoutName.trim(),
-        exercises: payloadExercises,
+        exercises: selectedExercises,
       });
       navigate('/workouts');
     } catch (err) {
@@ -142,23 +136,20 @@ export default function CreateWorkoutPage() {
                 <div className="results-list">
                   {searchResults.map((ex) => (
                     <div key={ex.exerciseId} className="result-item">
-                      <div>
+                      <div className="result-info">
                         <strong>{ex.name}</strong>
                         <p>{ex.bodyPart} | {ex.target} | {ex.equipment}</p>
                       </div>
-                      <div className="result-actions">
-                        <button
-                          type="button"
-                          onClick={() => setPreviewGifUrl(ex.gifUrl || '')}
-                          className="secondary-btn"
-                          disabled={!ex.gifUrl}
-                        >
-                          Ver GIF
-                        </button>
-                        <button type="button" onClick={() => addExercise(ex)} className="add-btn">
-                          Agregar
-                        </button>
-                      </div>
+
+                      {ex.gifUrl ? (
+                        <img src={ex.gifUrl} alt={ex.name} className="result-gif" />
+                      ) : (
+                        <div className="result-gif result-gif-empty">Sin GIF</div>
+                      )}
+
+                      <button type="button" onClick={() => addExercise(ex)} className="add-btn">
+                        Agregar
+                      </button>
                     </div>
                   ))}
                 </div>
@@ -207,14 +198,11 @@ export default function CreateWorkoutPage() {
                             />
                           </td>
                           <td>
-                            <button
-                              type="button"
-                              className="secondary-btn"
-                              onClick={() => setPreviewGifUrl(ex.gifUrl || '')}
-                              disabled={!ex.gifUrl}
-                            >
-                              Ver
-                            </button>
+                            {ex.gifUrl ? (
+                              <img src={ex.gifUrl} alt={ex.name} className="table-gif" />
+                            ) : (
+                              <span className="gif-empty">-</span>
+                            )}
                           </td>
                           <td>
                             <button type="button" className="danger-btn" onClick={() => removeExercise(ex.exerciseId)}>
@@ -242,17 +230,6 @@ export default function CreateWorkoutPage() {
           </form>
         </div>
       </div>
-
-      {previewGifUrl && (
-        <div className="gif-overlay" onClick={() => setPreviewGifUrl('')}>
-          <div className="gif-modal" onClick={(e) => e.stopPropagation()}>
-            <button type="button" className="gif-close" onClick={() => setPreviewGifUrl('')}>
-              ×
-            </button>
-            <img src={previewGifUrl} alt="Movimiento del ejercicio" className="gif-image" />
-          </div>
-        </div>
-      )}
     </div>
   );
 }

@@ -1,4 +1,3 @@
-
 import {
   Column,
   CreateDateColumn,
@@ -16,15 +15,6 @@ export class Workout {
 
   @Column({ type: 'varchar', length: 255 })
   name: string;
-
-  @Column({ type: 'text', nullable: true })
-  description: string;
-
-  @Column({ type: 'int', default: 0 })
-  duration: number; // en minutos
-
-  @Column({ type: 'varchar', length: 100, nullable: true })
-  difficulty: string; // fácil, medio, difícil
 
   @ManyToOne(() => User, (user) => user.id, { onDelete: 'CASCADE' })
   user: User;
@@ -45,8 +35,6 @@ export class Workout {
     bodyPart?: string;
     equipment?: string;
     target?: string;
-    sets: number;
-    reps: string;
+    gifUrl?: string;
   }>;
-
 }

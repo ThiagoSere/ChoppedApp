@@ -175,3 +175,34 @@
   position: relative;
   z-index: 1;
 }
+
+.workouts-header-actions { display: flex; gap: 8px; }
+
+.ghost-btn {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 14px;
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text-primary);
+  cursor: pointer;
+}
+
+.train-btn, .edit-btn {
+  border: 1px solid rgba(74, 144, 226, 0.35);
+  border-radius: 8px;
+  padding: 8px 12px;
+  background: rgba(74, 144, 226, 0.1);
+  color: var(--blue-bright);
+  cursor: pointer;
+  font-weight: 700;
+  margin-right: 8px;
+}
+
+.table-gif {
+  width: 74px;
+  height: 54px;
+  object-fit: cover;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+}
+

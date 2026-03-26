@@ -4,6 +4,8 @@ import LoginPage from './pages/LoginPage';
 import DashboardPage from './pages/DashboardPage';
 import WorkoutsPage from './pages/WorkoutsPage';
 import CreateWorkoutPage from './pages/CreateWorkoutPage';
+import EditWorkoutPage from './pages/EditWorkoutPage';
+import TrainWorkoutPage from './pages/TrainWorkoutPage';
 import StorePage from './pages/StorePage';
 import ProfilePage from './pages/ProfilePage';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -16,10 +18,8 @@ function App() {
     <Router>
       <div className="auth-container">
         <Routes>
-          {/* Rutas públicas */}
           <Route path="/login" element={!me ? <LoginPage /> : <Navigate to="/dashboard" />} />
 
-          {/* Rutas protegidas */}
           <Route
             path="/dashboard"
             element={
@@ -45,6 +45,22 @@ function App() {
             }
           />
           <Route
+            path="/workouts/:id/edit"
+            element={
+              <ProtectedRoute isAuthenticated={!!me}>
+                <EditWorkoutPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/workouts/:id/train"
+            element={
+              <ProtectedRoute isAuthenticated={!!me}>
+                <TrainWorkoutPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
             path="/store"
             element={
               <ProtectedRoute isAuthenticated={!!me}>
@@ -61,7 +77,6 @@ function App() {
             }
           />
 
-          {/* Redireccionar a login si no está autenticado */}
           <Route path="/" element={!me ? <Navigate to="/login" /> : <Navigate to="/dashboard" />} />
           <Route path="*" element={<Navigate to={me ? '/dashboard' : '/login'} />} />
         </Routes>
