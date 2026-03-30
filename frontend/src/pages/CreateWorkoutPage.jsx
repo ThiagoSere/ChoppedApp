@@ -45,24 +45,12 @@ export default function CreateWorkoutPage() {
         equipment: exercise.equipment || '',
         target: exercise.target || '',
         gifUrl: exercise.gifUrl || '',
-        sets: 3,
-        reps: '10-12',
       },
     ]);
   };
 
   const removeExercise = (exerciseId) => {
     setSelectedExercises((prev) => prev.filter((e) => e.exerciseId !== exerciseId));
-  };
-
-  const updateExerciseField = (exerciseId, field, value) => {
-    setSelectedExercises((prev) =>
-      prev.map((e) =>
-        e.exerciseId === exerciseId
-          ? { ...e, [field]: field === 'sets' ? Number(value) : value }
-          : e,
-      ),
-    );
   };
 
   const handleSubmit = async (e) => {
@@ -81,10 +69,22 @@ export default function CreateWorkoutPage() {
 
     setLoading(true);
     try {
+      const cleanExercises = selectedExercises.map(
+        ({ exerciseId, name, bodyPart, equipment, target, gifUrl }) => ({
+          exerciseId,
+          name,
+          bodyPart: bodyPart || '',
+          equipment: equipment || '',
+          target: target || '',
+          gifUrl: gifUrl || '',
+        }),
+      );
+
       await api.post('/workouts', {
         name: workoutName.trim(),
-        exercises: selectedExercises,
+        exercises: cleanExercises,
       });
+
       navigate('/workouts');
     } catch (err) {
       const msg = err?.response?.data?.message;
@@ -168,8 +168,6 @@ export default function CreateWorkoutPage() {
                         <th>Ejercicio</th>
                         <th>Musculo</th>
                         <th>Equipo</th>
-                        <th>Series</th>
-                        <th>Reps</th>
                         <th>GIF</th>
                         <th>Accion</th>
                       </tr>
@@ -180,23 +178,6 @@ export default function CreateWorkoutPage() {
                           <td>{ex.name}</td>
                           <td>{ex.bodyPart || '-'}</td>
                           <td>{ex.equipment || '-'}</td>
-                          <td>
-                            <input
-                              type="number"
-                              min="1"
-                              value={ex.sets}
-                              onChange={(e) => updateExerciseField(ex.exerciseId, 'sets', e.target.value)}
-                              className="small-input"
-                            />
-                          </td>
-                          <td>
-                            <input
-                              type="text"
-                              value={ex.reps}
-                              onChange={(e) => updateExerciseField(ex.exerciseId, 'reps', e.target.value)}
-                              className="small-input"
-                            />
-                          </td>
                           <td>
                             {ex.gifUrl ? (
                               <img src={ex.gifUrl} alt={ex.name} className="table-gif" />

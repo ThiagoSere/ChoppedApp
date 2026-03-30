@@ -75,10 +75,22 @@ export default function EditWorkoutPage() {
     setSaving(true);
     setError('');
     try {
-      await api.patch(`/workouts/${id}`, {
-        name: workoutName.trim(),
-        exercises: selectedExercises,
-      });
+        const cleanExercises = selectedExercises.map(
+                  ({ exerciseId, name, bodyPart, equipment, target, gifUrl }) => ({
+                    exerciseId,
+                    name,
+                    bodyPart: bodyPart || '',
+                    equipment: equipment || '',
+                    target: target || '',
+                    gifUrl: gifUrl || '',
+                  }),
+                );
+
+                await api.patch(`/workouts/${id}`, {
+                  name: workoutName.trim(),
+                  exercises: cleanExercises,
+     });
+
       navigate('/workouts');
     } catch (err) {
       const msg = err?.response?.data?.message;
