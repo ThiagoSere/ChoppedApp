@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import api from '../services/api';
+import ExerciseGif from '../components/ExerciseGif';
 import '../styles/TrainWorkout.css';
 
 export default function TrainWorkoutPage() {
@@ -57,10 +58,11 @@ export default function TrainWorkoutPage() {
   };
 
   const updateEntry = (exerciseId, field, value) => {
+    const numeric = Number(value);
     setEntries((prev) =>
       prev.map((e) =>
         e.exerciseId === exerciseId
-          ? { ...e, [field]: Number(value) }
+          ? { ...e, [field]: Number.isFinite(numeric) && numeric >= 0 ? numeric : 0 }
           : e,
       ),
     );
@@ -86,7 +88,7 @@ export default function TrainWorkoutPage() {
         })),
       });
 
-      navigate('/workouts');
+      navigate('/training-history');
     } catch (err) {
       const msg = err?.response?.data?.message;
       setError(Array.isArray(msg) ? msg.join(', ') : msg || 'No se pudo guardar el entrenamiento');
@@ -121,11 +123,7 @@ export default function TrainWorkoutPage() {
                 <span>{e.name}</span>
               </label>
 
-              {e.gifUrl ? (
-                <img src={e.gifUrl} alt={e.name} className="train-gif" />
-              ) : (
-                <div className="train-gif train-gif-empty">Sin GIF</div>
-              )}
+              <ExerciseGif exercise={e} alt={e.name} className="train-gif" />
 
               <div className="marks-col">
                 <label>

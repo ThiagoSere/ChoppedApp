@@ -1,0 +1,121 @@
+.history-container {
+  min-height: 100vh;
+  background: var(--bg-primary);
+  padding: 24px;
+}
+
+.history-card {
+  max-width: 1120px;
+  margin: 0 auto;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 20px;
+  min-height: calc(100vh - 48px);
+  display: flex;
+  flex-direction: column;
+}
+
+.history-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.history-top h1 {
+  margin: 0;
+  color: var(--text-primary);
+}
+
+.ghost-btn {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--text-primary);
+  cursor: pointer;
+}
+
+.history-muted {
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+.history-list {
+  display: grid;
+  gap: 12px;
+  overflow: auto;
+  padding-right: 2px;
+}
+
+.history-item {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.02);
+  padding: 12px;
+}
+
+.history-item-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.history-item-head h3 {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: 18px;
+}
+
+.history-item-head span {
+  color: var(--blue-light);
+  font-size: 12px;
+}
+
+.history-table-wrap {
+  overflow: auto;
+  border: 1px solid rgba(61, 139, 239, 0.12);
+  border-radius: 8px;
+}
+
+.history-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.history-table th {
+  text-align: left;
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.history-table td {
+  padding: 9px 10px;
+  border-bottom: 1px solid rgba(61, 139, 239, 0.08);
+  color: var(--text-primary);
+  font-size: 13px;
+}
+
+@media (max-width: 800px) {
+  .history-container {
+    padding: 14px;
+  }
+
+  .history-top {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .ghost-btn {
+    width: 100%;
+  }
+}

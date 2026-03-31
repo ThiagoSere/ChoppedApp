@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
+import ExerciseGif from '../components/ExerciseGif';
 import '../styles/CreateWorkout.css';
 
 export default function CreateWorkoutPage() {
@@ -127,7 +128,12 @@ export default function CreateWorkoutPage() {
                   placeholder="Ej: pecho"
                   className="form-input"
                 />
-                <button type="button" onClick={searchExercises} className="secondary-btn" disabled={searching}>
+                <button
+                  type="button"
+                  onClick={searchExercises}
+                  className="secondary-btn"
+                  disabled={searching}
+                >
                   {searching ? 'Buscando...' : 'Buscar'}
                 </button>
               </div>
@@ -141,11 +147,7 @@ export default function CreateWorkoutPage() {
                         <p>{ex.bodyPart} | {ex.target} | {ex.equipment}</p>
                       </div>
 
-                      {ex.gifUrl ? (
-                        <img src={ex.gifUrl} alt={ex.name} className="result-gif" />
-                      ) : (
-                        <div className="result-gif result-gif-empty">Sin GIF</div>
-                      )}
+                      <ExerciseGif exercise={ex} alt={ex.name} className="result-gif" />
 
                       <button type="button" onClick={() => addExercise(ex)} className="add-btn">
                         Agregar
@@ -179,11 +181,7 @@ export default function CreateWorkoutPage() {
                           <td>{ex.bodyPart || '-'}</td>
                           <td>{ex.equipment || '-'}</td>
                           <td>
-                            {ex.gifUrl ? (
-                              <img src={ex.gifUrl} alt={ex.name} className="table-gif" />
-                            ) : (
-                              <span className="gif-empty">-</span>
-                            )}
+                            <ExerciseGif exercise={ex} alt={ex.name} className="table-gif" />
                           </td>
                           <td>
                             <button type="button" className="danger-btn" onClick={() => removeExercise(ex.exerciseId)}>

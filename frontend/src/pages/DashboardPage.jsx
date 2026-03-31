@@ -4,23 +4,16 @@ import '../styles/Dashboard.css';
 
 export default function DashboardPage() {
   const navigate = useNavigate();
-  const { me, logout } = useAuth();
+  const { logout } = useAuth();
 
   return (
     <div className="dashboard-container">
       <section className="dashboard-hero">
         <h1 className="dashboard-logo">
-          CH<span className="logo-accent">O<span className="logo-icon" /></span>PPEDAPP
+          C<span className="logo-h">H<span className="logo-icon" /></span>OPPEDAPP
         </h1>
         <p className="dashboard-tagline">Fitness tracker</p>
       </section>
-
-      <div className="dashboard-greeting">
-        <span className="greeting-dot" />
-        <span className="greeting-text">
-          Sesion activa como <strong>{me?.email}</strong>
-        </span>
-      </div>
 
       <div className="dashboard-grid">
         <button className="dashboard-item primary" onClick={() => navigate('/workouts')}>
@@ -49,6 +42,19 @@ export default function DashboardPage() {
           </div>
         </button>
 
+        <button className="dashboard-item" onClick={() => navigate('/training-history')}>
+          <div className="item-inner">
+            <div className="item-left">
+              <span className="item-icon">📚</span>
+              <div>
+                <div className="item-label">Historial</div>
+                <div className="item-sub">Entrenamientos guardados</div>
+              </div>
+            </div>
+            <span className="item-arrow">›</span>
+          </div>
+        </button>
+
         <button className="dashboard-item" onClick={() => navigate('/store')}>
           <div className="item-inner">
             <div className="item-left">
@@ -62,7 +68,7 @@ export default function DashboardPage() {
           </div>
         </button>
 
-        <button className="dashboard-item dashboard-item-disabled" disabled>
+        <button className="dashboard-item disabled" disabled>
           <div className="item-inner">
             <div className="item-left">
               <span className="item-icon">🎥</span>
@@ -88,7 +94,7 @@ export default function DashboardPage() {
           </div>
         </button>
 
-        <button className="dashboard-item dashboard-item-danger" onClick={logout}>
+        <button className="dashboard-item danger" onClick={logout}>
           <div className="item-inner">
             <div className="item-left">
               <span className="item-icon">⏻</span>

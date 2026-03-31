@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import api from '../services/api';
+import ExerciseGif from '../components/ExerciseGif';
 import '../styles/CreateWorkout.css';
 
 export default function EditWorkoutPage() {
@@ -23,7 +24,7 @@ export default function EditWorkoutPage() {
       try {
         const { data } = await api.get(`/workouts/${id}`);
         setWorkoutName(data.name || '');
-        setSelectedExercises(data.exercises || []);
+        setSelectedExercises(Array.isArray(data.exercises) ? data.exercises : []);
       } catch (err) {
         const msg = err?.response?.data?.message;
         setError(Array.isArray(msg) ? msg.join(', ') : msg || 'No se pudo cargar la rutina');
@@ -31,6 +32,7 @@ export default function EditWorkoutPage() {
         setLoading(false);
       }
     };
+
     loadWorkout();
   }, [id]);
 
@@ -54,7 +56,18 @@ export default function EditWorkoutPage() {
   const addExercise = (exercise) => {
     const exists = selectedExercises.some((e) => e.exerciseId === exercise.exerciseId);
     if (exists) return;
-    setSelectedExercises((prev) => [...prev, exercise]);
+
+    setSelectedExercises((prev) => [
+      ...prev,
+      {
+        exerciseId: exercise.exerciseId,
+        name: exercise.name,
+        bodyPart: exercise.bodyPart || '',
+        equipment: exercise.equipment || '',
+        target: exercise.target || '',
+        gifUrl: exercise.gifUrl || '',
+      },
+    ]);
   };
 
   const removeExercise = (exerciseId) => {
@@ -63,10 +76,12 @@ export default function EditWorkoutPage() {
 
   const saveWorkout = async (e) => {
     e.preventDefault();
+
     if (!workoutName.trim()) {
       setError('El nombre es obligatorio');
       return;
     }
+
     if (!selectedExercises.length) {
       setError('Agrega al menos un ejercicio');
       return;
@@ -74,22 +89,23 @@ export default function EditWorkoutPage() {
 
     setSaving(true);
     setError('');
-    try {
-        const cleanExercises = selectedExercises.map(
-                  ({ exerciseId, name, bodyPart, equipment, target, gifUrl }) => ({
-                    exerciseId,
-                    name,
-                    bodyPart: bodyPart || '',
-                    equipment: equipment || '',
-                    target: target || '',
-                    gifUrl: gifUrl || '',
-                  }),
-                );
 
-                await api.patch(`/workouts/${id}`, {
-                  name: workoutName.trim(),
-                  exercises: cleanExercises,
-     });
+    try {
+      const cleanExercises = selectedExercises.map(
+        ({ exerciseId, name, bodyPart, equipment, target, gifUrl }) => ({
+          exerciseId,
+          name,
+          bodyPart: bodyPart || '',
+          equipment: equipment || '',
+          target: target || '',
+          gifUrl: gifUrl || '',
+        }),
+      );
+
+      await api.patch(`/workouts/${id}`, {
+        name: workoutName.trim(),
+        exercises: cleanExercises,
+      });
 
       navigate('/workouts');
     } catch (err) {
@@ -100,7 +116,15 @@ export default function EditWorkoutPage() {
     }
   };
 
-  if (loading) return <div className="page-content"><div className="create-workout-container"><p>Cargando...</p></div></div>;
+  if (loading) {
+    return (
+      <div className="page-content">
+        <div className="create-workout-container">
+          <p>Cargando...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="page-content">
@@ -143,8 +167,12 @@ export default function EditWorkoutPage() {
                         <strong>{ex.name}</strong>
                         <p>{ex.bodyPart} | {ex.target} | {ex.equipment}</p>
                       </div>
-                      {ex.gifUrl ? <img src={ex.gifUrl} alt={ex.name} className="result-gif" /> : <div className="result-gif result-gif-empty">Sin GIF</div>}
-                      <button type="button" className="add-btn" onClick={() => addExercise(ex)}>Agregar</button>
+
+                      <ExerciseGif exercise={ex} alt={ex.name} className="result-gif" />
+
+                      <button type="button" className="add-btn" onClick={() => addExercise(ex)}>
+                        Agregar
+                      </button>
                     </div>
                   ))}
                 </div>
@@ -168,7 +196,9 @@ export default function EditWorkoutPage() {
                       <tr key={ex.exerciseId}>
                         <td>{ex.name}</td>
                         <td>{ex.bodyPart || '-'}</td>
-                        <td>{ex.gifUrl ? <img src={ex.gifUrl} alt={ex.name} className="table-gif" /> : '-'}</td>
+                        <td>
+                          <ExerciseGif exercise={ex} alt={ex.name} className="table-gif" />
+                        </td>
                         <td>
                           <button type="button" className="danger-btn" onClick={() => removeExercise(ex.exerciseId)}>
                             Quitar
@@ -177,7 +207,9 @@ export default function EditWorkoutPage() {
                       </tr>
                     ))}
                     {!selectedExercises.length && (
-                      <tr><td colSpan={4}>No hay ejercicios</td></tr>
+                      <tr>
+                        <td colSpan={4}>No hay ejercicios</td>
+                      </tr>
                     )}
                   </tbody>
                 </table>

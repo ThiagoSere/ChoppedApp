@@ -9,6 +9,8 @@ import TrainWorkoutPage from './pages/TrainWorkoutPage';
 import StorePage from './pages/StorePage';
 import ProfilePage from './pages/ProfilePage';
 import ProtectedRoute from './components/ProtectedRoute';
+import TrainingHistoryPage from './pages/TrainingHistoryPage';
+
 import './App.css';
 
 function App() {
@@ -76,6 +78,15 @@ function App() {
               </ProtectedRoute>
             }
           />
+          <Route
+            path="/training-history"
+            element={
+              <ProtectedRoute isAuthenticated={!!me}>
+                <TrainingHistoryPage />
+              </ProtectedRoute>
+            }
+          />
+
 
           <Route path="/" element={!me ? <Navigate to="/login" /> : <Navigate to="/dashboard" />} />
           <Route path="*" element={<Navigate to={me ? '/dashboard' : '/login'} />} />
