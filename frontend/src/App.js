@@ -6,6 +6,7 @@ import WorkoutsPage from './pages/WorkoutsPage';
 import CreateWorkoutPage from './pages/CreateWorkoutPage';
 import EditWorkoutPage from './pages/EditWorkoutPage';
 import TrainWorkoutPage from './pages/TrainWorkoutPage';
+import TechniquePage from './pages/TechniquePage';
 import StorePage from './pages/StorePage';
 import ProfilePage from './pages/ProfilePage';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -14,7 +15,11 @@ import TrainingHistoryPage from './pages/TrainingHistoryPage';
 import './App.css';
 
 function App() {
-  const { me } = useAuth();
+  const { me, authReady } = useAuth();
+
+  if (!authReady) {
+    return <div className="auth-container">Cargando sesión...</div>;
+  }
 
   return (
     <Router>
@@ -63,6 +68,14 @@ function App() {
             }
           />
           <Route
+            path="/technique"
+            element={
+              <ProtectedRoute isAuthenticated={!!me}>
+                <TechniquePage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
             path="/store"
             element={
               <ProtectedRoute isAuthenticated={!!me}>
@@ -86,7 +99,6 @@ function App() {
               </ProtectedRoute>
             }
           />
-
 
           <Route path="/" element={!me ? <Navigate to="/login" /> : <Navigate to="/dashboard" />} />
           <Route path="*" element={<Navigate to={me ? '/dashboard' : '/login'} />} />

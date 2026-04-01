@@ -1,0 +1,295 @@
+.technique-page {
+  min-height: 100vh;
+  padding: 24px;
+  background: var(--bg-primary);
+}
+
+.technique-card {
+  max-width: 1120px;
+  margin: 0 auto;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.technique-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.technique-header h1 {
+  margin: 0;
+}
+
+.technique-subtitle {
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+.technique-back-btn,
+.clear-history-btn {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--text-primary);
+  cursor: pointer;
+}
+
+.technique-controls {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: end;
+}
+
+.technique-controls label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.technique-controls select {
+  min-width: 220px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text-primary);
+  border-radius: 8px;
+  padding: 9px 10px;
+}
+
+.technique-toggle-btn {
+  border: none;
+  border-radius: 10px;
+  padding: 12px 14px;
+  background: var(--blue-bright);
+  color: #fff;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.technique-stop-btn {
+  border: none;
+  border-radius: 10px;
+  padding: 12px 14px;
+  background: #d83a3a;
+  color: #fff;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.technique-empty {
+  min-height: 120px;
+  border: 1px dashed var(--border);
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  color: var(--text-muted);
+}
+
+.angles-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.technique-live-panel {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px;
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 10px;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.technique-live-panel .k {
+  display: block;
+  color: var(--text-muted);
+  font-size: 11px;
+  margin-bottom: 4px;
+}
+
+.technique-history {
+  margin-top: 8px;
+  border-top: 1px solid var(--border);
+  padding-top: 14px;
+}
+
+.technique-history-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.technique-history h2 {
+  margin: 0;
+  font-size: 18px;
+}
+
+.history-empty {
+  color: var(--text-muted);
+  margin-top: 8px;
+}
+
+.history-list {
+  display: grid;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.history-item {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.history-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.history-top span {
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.history-metrics {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  margin-top: 8px;
+  color: var(--text-primary);
+  font-size: 13px;
+}
+
+.history-note {
+  margin-top: 8px;
+  color: var(--blue-light);
+  font-size: 13px;
+}
+
+.pose-camera-wrap {
+  position: relative;
+  width: 100%;
+  max-width: 840px;
+  margin: 0 auto;
+  border-radius: var(--r-lg);
+  overflow: hidden;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  aspect-ratio: 4 / 3;
+}
+
+.pose-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: scaleX(-1);
+  display: block;
+}
+
+.pose-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  transform: scaleX(-1);
+  pointer-events: none;
+}
+
+.pose-loading-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgba(10, 22, 40, 0.82);
+  gap: 10px;
+}
+
+.pose-loader {
+  width: 34px;
+  height: 34px;
+  border: 3px solid var(--border);
+  border-top-color: var(--blue-bright);
+  border-radius: 50%;
+  animation: pose-spin 0.9s linear infinite;
+}
+
+.pose-live-badge {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  background: rgba(10, 22, 40, 0.8);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--blue-bright);
+}
+
+.pose-feedback-card {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  padding: 12px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.pose-feedback-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.pose-feedback-angle {
+  font-size: 28px;
+  font-weight: 700;
+  font-family: var(--font-display);
+  line-height: 1;
+}
+
+.pose-feedback-msg {
+  font-size: 12px;
+  font-weight: 500;
+}
+
+@keyframes pose-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 768px) {
+  .technique-page {
+    padding: 14px;
+  }
+
+  .angles-grid,
+  .technique-live-panel {
+    grid-template-columns: 1fr;
+  }
+}

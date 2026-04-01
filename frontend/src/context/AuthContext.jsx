@@ -1,4 +1,4 @@
-import React, { createContext, useState, useContext } from 'react';
+import React, { createContext, useState, useContext, useEffect } from 'react';
 import api from '../services/api';
 
 const AuthContext = createContext();
@@ -7,6 +7,35 @@ export function AuthProvider({ children }) {
   const [me, setMe] = useState(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [authReady, setAuthReady] = useState(false);
+
+  useEffect(() => {
+    let mounted = true;
+
+    const bootstrapAuth = async () => {
+      const token = localStorage.getItem('accessToken');
+      if (!token) {
+        if (mounted) setAuthReady(true);
+        return;
+      }
+
+      try {
+        const meResponse = await api.get('/auth/me');
+        if (mounted) setMe(meResponse.data);
+      } catch {
+        localStorage.removeItem('accessToken');
+        if (mounted) setMe(null);
+      } finally {
+        if (mounted) setAuthReady(true);
+      }
+    };
+
+    bootstrapAuth();
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   const login = async (email, password) => {
     setError('');
@@ -75,6 +104,7 @@ export function AuthProvider({ children }) {
     error,
     setError,
     loading,
+    authReady,
     login,
     register,
     logout,

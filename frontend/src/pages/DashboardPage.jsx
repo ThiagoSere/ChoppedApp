@@ -55,6 +55,19 @@ export default function DashboardPage() {
           </div>
         </button>
 
+        <button className="dashboard-item" onClick={() => navigate('/technique')}>
+          <div className="item-inner">
+            <div className="item-left">
+              <span className="item-icon">🎥</span>
+              <div>
+                <div className="item-label">Correccion de tecnica</div>
+                <div className="item-sub">Analisis y feedback</div>
+              </div>
+            </div>
+            <span className="item-arrow">›</span>
+          </div>
+        </button>
+
         <button className="dashboard-item" onClick={() => navigate('/store')}>
           <div className="item-inner">
             <div className="item-left">
@@ -62,19 +75,6 @@ export default function DashboardPage() {
               <div>
                 <div className="item-label">Tienda</div>
                 <div className="item-sub">Productos y accesorios</div>
-              </div>
-            </div>
-            <span className="item-arrow">›</span>
-          </div>
-        </button>
-
-        <button className="dashboard-item disabled" disabled>
-          <div className="item-inner">
-            <div className="item-left">
-              <span className="item-icon">🎥</span>
-              <div>
-                <div className="item-label">Correccion de tecnica</div>
-                <div className="item-sub">Proximamente</div>
               </div>
             </div>
             <span className="item-arrow">›</span>
