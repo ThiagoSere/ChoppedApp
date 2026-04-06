@@ -1,5 +1,6 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import api from '../services/api';
+import { preloadLeaflet } from '../services/mapPreload';
 
 const AuthContext = createContext();
 
@@ -22,6 +23,9 @@ export function AuthProvider({ children }) {
       try {
         const meResponse = await api.get('/auth/me');
         if (mounted) setMe(meResponse.data);
+
+        // Precarga no bloqueante del mapa al tener sesion.
+        preloadLeaflet();
       } catch {
         localStorage.removeItem('accessToken');
         if (mounted) setMe(null);
@@ -46,10 +50,12 @@ export function AuthProvider({ children }) {
 
       const meResponse = await api.get('/auth/me');
       setMe(meResponse.data);
+
+      preloadLeaflet();
       return { success: true };
     } catch (err) {
       const msg = err?.response?.data?.message;
-      const errorMsg = Array.isArray(msg) ? msg.join(', ') : msg || 'No se pudo iniciar sesión';
+      const errorMsg = Array.isArray(msg) ? msg.join(', ') : msg || 'No se pudo iniciar sesion';
       setError(errorMsg);
       return { success: false, error: errorMsg };
     } finally {
@@ -67,6 +73,8 @@ export function AuthProvider({ children }) {
 
       const meResponse = await api.get('/auth/me');
       setMe(meResponse.data);
+
+      preloadLeaflet();
       return { success: true };
     } catch (err) {
       const msg = err?.response?.data?.message;

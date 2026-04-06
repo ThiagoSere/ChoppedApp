@@ -11,6 +11,7 @@ export default function WorkoutsPage() {
   const [loading, setLoading] = useState(false);
   const [creatingFromPresetId, setCreatingFromPresetId] = useState('');
   const [error, setError] = useState('');
+  const [section, setSection] = useState('mine'); // mine | preset
 
   const loadWorkouts = async () => {
     setLoading(true);
@@ -54,7 +55,6 @@ export default function WorkoutsPage() {
       };
 
       const { data } = await api.post('/workouts', payload);
-
       setMyWorkouts((prev) => [data, ...prev]);
       navigate(`/workouts/${data.id}/edit`);
     } catch (err) {
@@ -70,10 +70,7 @@ export default function WorkoutsPage() {
   }, []);
 
   const renderWorkoutCard = (workout, isPreset = false) => (
-    <div
-      key={workout.id}
-      className={`workout-card ${isPreset ? 'workout-card-preset' : ''}`}
-    >
+    <div key={workout.id} className={`workout-card ${isPreset ? 'workout-card-preset' : ''}`}>
       <h3 className="workout-title">
         {workout.name}
         {isPreset && <span className="preset-badge">Predeterminada</span>}
@@ -136,37 +133,56 @@ export default function WorkoutsPage() {
     <div className="page-content">
       <div className="workouts-container">
         <div className="workouts-header">
-          <h1>Rutinas</h1>
+          <h1>Entrenar</h1>
           <div className="workouts-header-actions">
             <button onClick={() => navigate('/dashboard')} className="ghost-btn">Volver</button>
-            <button onClick={() => navigate('/workouts/crear')} className="create-btn">Crear Nueva Rutina</button>
+            <button onClick={() => navigate('/workouts/crear')} className="create-btn">Crear nueva rutina</button>
           </div>
+        </div>
+
+        <div className="workouts-switch">
+          <button
+            className={`switch-btn ${section === 'mine' ? 'active' : ''}`}
+            onClick={() => setSection('mine')}
+          >
+            Mis rutinas
+          </button>
+          <button
+            className={`switch-btn ${section === 'preset' ? 'active' : ''}`}
+            onClick={() => setSection('preset')}
+          >
+            Rutinas predefinidas
+          </button>
         </div>
 
         {loading ? (
           <p className="loading">Cargando rutinas...</p>
         ) : (
           <>
-            <section className="workouts-section">
-              <h2 className="section-title">Mis rutinas</h2>
-              {myWorkouts.length === 0 ? (
-                <p className="no-workouts">Todavia no creaste rutinas.</p>
-              ) : (
-                <div className="workouts-grid">
-                  {myWorkouts.map((w) => renderWorkoutCard(w, false))}
-                </div>
-              )}
-            </section>
+            {section === 'mine' && (
+              <section className="workouts-section">
+                <h2 className="section-title">Mis rutinas</h2>
+                {myWorkouts.length === 0 ? (
+                  <p className="no-workouts">Todavia no creaste rutinas.</p>
+                ) : (
+                  <div className="workouts-grid">
+                    {myWorkouts.map((w) => renderWorkoutCard(w, false))}
+                  </div>
+                )}
+              </section>
+            )}
 
-            <section className="workouts-section">
-              <h2 className="section-title">Rutinas predeterminadas</h2>
-              <p className="section-subtitle">
-                Plantillas base para empezar rapido. Al tocar "Usar rutina" se copia a tus rutinas.
-              </p>
-              <div className="workouts-grid">
-                {PRESET_WORKOUTS.map((w) => renderWorkoutCard(w, true))}
-              </div>
-            </section>
+            {section === 'preset' && (
+              <section className="workouts-section">
+                <h2 className="section-title">Rutinas predefinidas</h2>
+                <p className="section-subtitle">
+                  Plantillas base para empezar rapido. Al tocar "Usar rutina" se copia a tus rutinas.
+                </p>
+                <div className="workouts-grid">
+                  {PRESET_WORKOUTS.map((w) => renderWorkoutCard(w, true))}
+                </div>
+              </section>
+            )}
           </>
         )}
 

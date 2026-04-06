@@ -11,6 +11,7 @@ import StorePage from './pages/StorePage';
 import ProfilePage from './pages/ProfilePage';
 import ProtectedRoute from './components/ProtectedRoute';
 import TrainingHistoryPage from './pages/TrainingHistoryPage';
+import GymMapPage from './pages/GymMapPage';
 
 import './App.css';
 
@@ -18,7 +19,7 @@ function App() {
   const { me, authReady } = useAuth();
 
   if (!authReady) {
-    return <div className="auth-container">Cargando sesión...</div>;
+    return <div className="auth-container">Cargando sesion...</div>;
   }
 
   return (
@@ -96,6 +97,14 @@ function App() {
             element={
               <ProtectedRoute isAuthenticated={!!me}>
                 <TrainingHistoryPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/gym-map"
+            element={
+              <ProtectedRoute isAuthenticated={!!me}>
+                <GymMapPage />
               </ProtectedRoute>
             }
           />

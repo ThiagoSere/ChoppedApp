@@ -272,3 +272,31 @@
   color: var(--text-muted);
   font-size: 13px;
 }
+
+.workouts-switch {
+  max-width: 1200px;
+  margin: 0 auto 18px;
+  display: flex;
+  gap: 8px;
+  position: relative;
+  z-index: 1;
+}
+
+.switch-btn {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 14px;
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text-primary);
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.switch-btn.active {
+  border-color: rgba(61, 139, 239, 0.55);
+  background: rgba(61, 139, 239, 0.15);
+  color: var(--blue-bright);
+}

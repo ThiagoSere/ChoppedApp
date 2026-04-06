@@ -22,7 +22,7 @@ export default function DashboardPage() {
               <span className="item-icon">🏋️</span>
               <div>
                 <div className="item-label">Entrenar</div>
-                <div className="item-sub">Rutinas y ejercicios</div>
+                <div className="item-sub">Mis rutinas y rutinas predefinidas</div>
               </div>
             </div>
             <span className="item-arrow">›</span>
@@ -93,6 +93,20 @@ export default function DashboardPage() {
             <span className="item-arrow">›</span>
           </div>
         </button>
+
+        <button className="dashboard-item" onClick={() => navigate('/gym-map')}>
+            <div className="item-inner">
+                <div className="item-left">
+                    <span className="item-icon">🗺️</span>
+                  <div>
+                      <div className="item-label">Mapa de gimnasios</div>
+                <div className="item-sub">CABA (OpenStreetMap + Leaflet)</div>
+             </div>
+            </div>
+            <span className="item-arrow">›</span>
+          </div>
+        </button>
+
 
         <button className="dashboard-item danger" onClick={logout}>
           <div className="item-inner">
