@@ -17,7 +17,7 @@ function buildCandidates(exercise) {
   const out = [];
 
   if (direct) out.push(direct);
-  if (id && !id.startsWith('preset-')) {
+  if (id) {
     out.push(`${apiBase}/exercises/gif/${id}`);
   }
 
