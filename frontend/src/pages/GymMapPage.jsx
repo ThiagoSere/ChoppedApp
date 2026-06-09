@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { GoogleMap, MarkerF, CircleF, useJsApiLoader } from '@react-google-maps/api';
+import {
+  GoogleMap, MarkerF, CircleF, DirectionsRenderer, useJsApiLoader,
+} from '@react-google-maps/api';
 import api from '../services/api';
 import '../styles/GymMap.css';
 
@@ -26,12 +28,13 @@ export default function GymMapPage() {
   const [status, setStatus]               = useState('');
   const [loading, setLoading]             = useState(false);
 
-  // Only chain filter — backend already filtered by radius
+  const [directions, setDirections] = useState(null);
+  const [routeInfo, setRouteInfo]   = useState(null);
+
   const visibleGyms = useMemo(() =>
     selectedChain === 'all' ? gyms : gyms.filter((g) => g.chain === selectedChain),
   [gyms, selectedChain]);
 
-  // Geolocation — runs once
   useEffect(() => {
     if (!navigator.geolocation) { setGeoReady(true); return; }
     navigator.geolocation.getCurrentPosition(
@@ -46,7 +49,6 @@ export default function GymMapPage() {
     );
   }, []);
 
-  // Center map once when GPS resolves
   useEffect(() => {
     if (mapRef.current && userPos) {
       mapRef.current.panTo(userPos);
@@ -59,6 +61,8 @@ export default function GymMapPage() {
   const fetchGyms = useCallback(async (lat, lng, km) => {
     setLoading(true);
     setStatus('Buscando sucursales...');
+    setDirections(null);
+    setRouteInfo(null);
     try {
       const { data } = await api.get('/gyms', {
         params: { lat, lng, radiusKm: km },
@@ -73,6 +77,34 @@ export default function GymMapPage() {
     }
   }, []);
 
+  const getDirections = useCallback((gym) => {
+    if (!userPos || !window.google) return;
+    setDirections(null);
+    setRouteInfo(null);
+
+    new window.google.maps.DirectionsService().route(
+      {
+        origin: userPos,
+        destination: { lat: gym.lat, lng: gym.lng },
+        travelMode: window.google.maps.TravelMode.DRIVING,
+      },
+      (result, status) => {
+        if (status === 'OK') {
+          setDirections(result);
+          const leg = result.routes[0].legs[0];
+          setRouteInfo({
+            name: gym.name,
+            address: gym.address,
+            distance: leg.distance.text,
+            duration: leg.duration.text,
+          });
+        }
+      },
+    );
+  }, [userPos]);
+
+  const clearRoute = () => { setDirections(null); setRouteInfo(null); };
+
   const statusText =
     status ||
     `${visibleGyms.length} sucursal${visibleGyms.length !== 1 ? 'es' : ''}` +
@@ -82,16 +114,12 @@ export default function GymMapPage() {
     <div className="gymmap-page">
       <div className="gymmap-header">
         <h1>Mapa de gimnasios</h1>
-        <button className="gymmap-back" onClick={() => navigate('/dashboard')}>
-          Volver
-        </button>
+        <button className="gymmap-back" onClick={() => navigate('/dashboard')}>Volver</button>
       </div>
 
       <div className="gymmap-controls">
         <div className="gymmap-control-group">
-          <label className="gymmap-control-label">
-            Radio: <strong>{radiusKm} km</strong>
-          </label>
+          <label className="gymmap-control-label">Radio: <strong>{radiusKm} km</strong></label>
           <input
             type="range" min={2} max={50} step={1}
             value={radiusKm}
@@ -99,20 +127,14 @@ export default function GymMapPage() {
             className="gymmap-slider"
           />
         </div>
-
         <div className="gymmap-control-group">
           <label className="gymmap-control-label">Cadena</label>
-          <select
-            value={selectedChain}
-            onChange={(e) => setSelectedChain(e.target.value)}
-            className="gymmap-select"
-          >
+          <select value={selectedChain} onChange={(e) => setSelectedChain(e.target.value)} className="gymmap-select">
             <option value="all">Megatlon y SportClub</option>
             <option value="Megatlon">Megatlon</option>
             <option value="SportClub">SportClub</option>
           </select>
         </div>
-
         <button
           className="gymmap-search-btn"
           onClick={() => fetchGyms(center.lat, center.lng, radiusKm)}
@@ -135,49 +157,54 @@ export default function GymMapPage() {
             options={MAP_OPTIONS}
             onLoad={onMapLoad}
           >
-            {/* radius circle */}
             <CircleF
               center={center}
               radius={radiusKm * 1000}
-              options={{
-                strokeColor: '#3d8bef',
-                strokeOpacity: 0.7,
-                strokeWeight: 1,
-                fillColor: '#3d8bef',
-                fillOpacity: 0.05,
-              }}
+              options={{ strokeColor: '#3d8bef', strokeOpacity: 0.7, strokeWeight: 1, fillColor: '#3d8bef', fillOpacity: 0.05 }}
             />
 
-            {/* user position */}
             {userPos && (
               <CircleF
                 center={userPos}
                 radius={120}
-                options={{
-                  strokeColor: '#e03535',
-                  strokeWeight: 2,
-                  fillColor: '#e03535',
-                  fillOpacity: 0.9,
-                }}
+                options={{ strokeColor: '#e03535', strokeWeight: 2, fillColor: '#e03535', fillOpacity: 0.9 }}
               />
             )}
 
-            {/* gym markers */}
+            {directions && (
+              <DirectionsRenderer
+                directions={directions}
+                options={{ suppressMarkers: true }}
+              />
+            )}
+
             {visibleGyms.map((gym) => (
               <MarkerF
                 key={gym.id}
                 position={{ lat: gym.lat, lng: gym.lng }}
-                title={`${gym.name}${gym.address ? '\n' + gym.address : ''}`}
+                title={gym.name}
+                onClick={() => getDirections(gym)}
               />
             ))}
           </GoogleMap>
         )}
       </div>
 
+      {routeInfo && (
+        <div className="gymmap-route-info">
+          <div className="gymmap-route-details">
+            <strong>{routeInfo.name}</strong>
+            {routeInfo.address && <span className="gymmap-route-addr">{routeInfo.address}</span>}
+            <span className="gymmap-route-meta">{routeInfo.distance} · {routeInfo.duration} en auto</span>
+          </div>
+          <button className="gymmap-route-close" onClick={clearRoute}>✕</button>
+        </div>
+      )}
+
       {visibleGyms.length > 0 && (
         <div className="gymmap-list">
           {visibleGyms.map((gym) => (
-            <div key={gym.id} className="gymmap-list-item">
+            <div key={gym.id} className="gymmap-list-item" onClick={() => getDirections(gym)} style={{ cursor: 'pointer' }}>
               <strong>{gym.name}</strong>
               <span className="gymmap-chain-badge">{gym.chain}</span>
               {gym.address && <div className="gymmap-list-addr">{gym.address}</div>}
