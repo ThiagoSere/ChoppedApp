@@ -22,7 +22,7 @@ export default function CreateWorkoutPage() {
 
     try {
       const { data } = await api.get('/exercises/search', {
-        params: { q: search.trim(), limit: 5 },
+        params: { q: search.trim(), limit: 20 },
       });
       setSearchResults(Array.isArray(data) ? data : []);
     } catch (err) {

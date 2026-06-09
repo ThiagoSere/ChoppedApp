@@ -61,6 +61,29 @@ export default function ProfilePage() {
     }
   };
 
+  const handleImageFile = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const SIZE = 200;
+        canvas.width = SIZE;
+        canvas.height = SIZE;
+        const ctx = canvas.getContext('2d');
+        const min = Math.min(img.width, img.height);
+        const sx = (img.width - min) / 2;
+        const sy = (img.height - min) / 2;
+        ctx.drawImage(img, sx, sy, min, min, 0, 0, SIZE, SIZE);
+        setProfileImageUrl(canvas.toDataURL('image/jpeg', 0.85));
+      };
+      img.src = ev.target.result;
+    };
+    reader.readAsDataURL(file);
+  };
+
   const handleDelete = async () => {
     const result = await deleteMyAccount();
     if (!result.success) {
@@ -97,8 +120,25 @@ export default function ProfilePage() {
               <label className="form-label">Alias</label>
               <input className="profile-input" value={alias} onChange={(e) => setAlias(e.target.value)} placeholder="Tu alias" />
 
-              <label className="form-label">Foto de perfil (URL)</label>
-              <input className="profile-input" value={profileImageUrl} onChange={(e) => setProfileImageUrl(e.target.value)} placeholder="https://..." />
+              <label className="form-label">Foto de perfil</label>
+              <div className="avatar-upload-row">
+                <input
+                  className="profile-input"
+                  value={profileImageUrl.startsWith('data:') ? '(imagen subida desde dispositivo)' : profileImageUrl}
+                  onChange={(e) => setProfileImageUrl(e.target.value)}
+                  placeholder="https://..."
+                  readOnly={profileImageUrl.startsWith('data:')}
+                />
+                <label className="upload-file-btn">
+                  Subir archivo
+                  <input
+                    type="file"
+                    accept="image/jpeg,image/png"
+                    style={{ display: 'none' }}
+                    onChange={handleImageFile}
+                  />
+                </label>
+              </div>
 
               <label className="form-label">Email</label>
               <input className="profile-input" value={email} disabled />

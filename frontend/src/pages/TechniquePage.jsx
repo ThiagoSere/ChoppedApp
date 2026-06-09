@@ -7,6 +7,27 @@ import '../styles/TechniquePage.css';
 
 const STORAGE_KEY = 'chopped_technique_history_v1';
 
+// Umbral de fases para conteo de repeticiones por modo
+const PHASE_THRESHOLDS = {
+  squat:         { down: 100, up: 150 },
+  lunge:         { down: 100, up: 150 },
+  curl:          { down: 65,  up: 145 },
+  press:         { down: 90,  up: 150 },
+  tricep:        { down: 65,  up: 150 },
+  row:           { down: 55,  up: 130 },
+  shoulderpress: { down: 85,  up: 155 },
+};
+
+const MODE_LABELS = {
+  squat:         'Sentadilla',
+  lunge:         'Estocada (cuadriceps)',
+  curl:          'Curl de biceps',
+  press:         'Press de pecho',
+  tricep:        'Extension de triceps',
+  row:           'Remo (espalda)',
+  shoulderpress: 'Press de hombros',
+};
+
 function safeNumber(value) {
   return Number.isFinite(value) ? value : null;
 }
@@ -16,25 +37,99 @@ function avg(values) {
   return values.reduce((acc, n) => acc + n, 0) / values.length;
 }
 
+// Extrae el ángulo primario relevante para cada modo
+function getAngleForMode(angles, mode) {
+  if (!angles) return null;
+  let left = null;
+  let right = null;
+
+  if (['curl', 'press', 'tricep'].includes(mode)) {
+    left  = safeNumber(angles.leftElbow);
+    right = safeNumber(angles.rightElbow);
+  } else if (['squat', 'lunge'].includes(mode)) {
+    left  = safeNumber(angles.leftKnee);
+    right = safeNumber(angles.rightKnee);
+  } else if (['row', 'shoulderpress'].includes(mode)) {
+    left  = safeNumber(angles.leftShoulder);
+    right = safeNumber(angles.rightShoulder);
+  }
+
+  if (left == null && right == null) return null;
+  if (left == null) return right;
+  if (right == null) return left;
+  return Math.round((left + right) / 2);
+}
+
+// Cards de ángulos a mostrar según el modo activo
+function getAngleDisplays(mode, angles) {
+  if (!angles) return [];
+  if (['curl', 'press', 'tricep'].includes(mode)) {
+    return [
+      { label: 'Codo izq.', joint: 'elbow', angle: angles.leftElbow },
+      { label: 'Codo der.', joint: 'elbow', angle: angles.rightElbow },
+    ];
+  }
+  if (['squat', 'lunge'].includes(mode)) {
+    return [
+      { label: 'Rodilla izq.', joint: 'knee', angle: angles.leftKnee },
+      { label: 'Rodilla der.', joint: 'knee', angle: angles.rightKnee },
+    ];
+  }
+  if (['row', 'shoulderpress'].includes(mode)) {
+    return [
+      { label: 'Hombro izq.', joint: 'shoulder', angle: angles.leftShoulder },
+      { label: 'Hombro der.', joint: 'shoulder', angle: angles.rightShoulder },
+    ];
+  }
+  return [];
+}
+
 function criteriaFor(mode, angle) {
-  if (angle == null) {
-    return { status: 'idle', message: 'No detectado' };
-  }
+  if (angle == null) return { status: 'idle', message: 'No detectado' };
 
-  if (mode === 'squat') {
-    // Criterio estandar aproximado para sentadilla por angulo de rodilla.
-    if (angle > 155) return { status: 'warn', message: 'Bajas poco: puedes bajar mas' };
-    if (angle > 120) return { status: 'info', message: 'Vas bien, intenta bajar un poco mas' };
-    if (angle >= 80 && angle <= 120) return { status: 'good', message: 'Profundidad correcta' };
-    if (angle < 70) return { status: 'warn', message: 'Muy profundo, controla la tecnica' };
-    return { status: 'good', message: 'Buen rango de movimiento' };
-  }
+  switch (mode) {
+    case 'squat':
+    case 'lunge':
+      if (angle > 155) return { status: 'warn',  message: 'Baja mas para trabajar bien' };
+      if (angle > 120) return { status: 'info',  message: 'Vas bien, baja un poco mas' };
+      if (angle >= 80 && angle <= 120) return { status: 'good', message: 'Profundidad correcta' };
+      if (angle < 70)  return { status: 'warn',  message: 'Muy profundo, cuida la tecnica' };
+      return { status: 'good', message: 'Buen rango de movimiento' };
 
-  // curl
-  if (angle > 150) return { status: 'info', message: 'Brazo extendido correctamente' };
-  if (angle >= 70 && angle <= 150) return { status: 'info', message: 'Sigue el recorrido' };
-  if (angle < 60) return { status: 'good', message: 'Curl completo' };
-  return { status: 'info', message: 'Movimiento estable' };
+    case 'curl':
+      if (angle > 150) return { status: 'info', message: 'Brazo extendido correctamente' };
+      if (angle >= 70 && angle <= 150) return { status: 'info', message: 'Sigue el recorrido' };
+      if (angle < 60)  return { status: 'good', message: 'Curl completo' };
+      return { status: 'info', message: 'Movimiento estable' };
+
+    case 'press':
+      if (angle > 160) return { status: 'info', message: 'Brazos extendidos - baja controlado' };
+      if (angle >= 90 && angle <= 160) return { status: 'info', message: 'Bajando - mantene el control' };
+      if (angle >= 70 && angle < 90) return { status: 'good', message: 'Rango completo de pecho' };
+      if (angle < 60)  return { status: 'warn', message: 'Muy profundo, cuida los hombros' };
+      return { status: 'info', message: 'Movimiento estable' };
+
+    case 'tricep':
+      if (angle > 155) return { status: 'good', message: 'Extension completa del triceps' };
+      if (angle >= 80 && angle <= 155) return { status: 'info', message: 'Extendiendo...' };
+      if (angle < 65)  return { status: 'good', message: 'Contraccion completa' };
+      return { status: 'info', message: 'Movimiento en progreso' };
+
+    case 'row':
+      if (angle < 55)  return { status: 'good', message: 'Tiron completo - gran contraccion dorsal' };
+      if (angle >= 55 && angle <= 120) return { status: 'info', message: 'Sigue tirando hacia atras' };
+      if (angle > 140) return { status: 'info', message: 'Brazo extendido - inicia el tiron' };
+      return { status: 'info', message: 'Movimiento en progreso' };
+
+    case 'shoulderpress':
+      if (angle > 155) return { status: 'good', message: 'Press completo - brazos extendidos' };
+      if (angle >= 85 && angle <= 155) return { status: 'info', message: 'Empujando hacia arriba...' };
+      if (angle < 85)  return { status: 'good', message: 'Posicion inicial correcta' };
+      return { status: 'info', message: 'Movimiento en progreso' };
+
+    default:
+      return { status: 'info', message: 'Movimiento estable' };
+  }
 }
 
 export default function TechniquePage() {
@@ -48,16 +143,16 @@ export default function TechniquePage() {
   const [history, setHistory] = useState([]);
 
   const modelReadyRef = useRef(false);
-  const repCountRef = useRef(0);
-  const phaseRef = useRef('up');
-  const startedAtRef = useRef(0);
-  const samplesRef = useRef([]);
+  const repCountRef   = useRef(0);
+  const phaseRef      = useRef('up');
+  const startedAtRef  = useRef(0);
+  const samplesRef    = useRef([]);
 
   // Resetear estado al cambiar de ejercicio
   useEffect(() => {
     repCountRef.current = 0;
-    phaseRef.current = 'up';
-    samplesRef.current = [];
+    phaseRef.current    = 'up';
+    samplesRef.current  = [];
     setAngles(null);
   }, [mode]);
 
@@ -71,23 +166,10 @@ export default function TechniquePage() {
     }
   }, []);
 
-  const selectedPrimaryAngle = useMemo(() => {
-    if (!angles) return null;
-    if (mode === 'squat') {
-      const left = safeNumber(angles.leftKnee);
-      const right = safeNumber(angles.rightKnee);
-      if (left == null && right == null) return null;
-      if (left == null) return right;
-      if (right == null) return left;
-      return Math.round((left + right) / 2);
-    }
-    const left = safeNumber(angles.leftElbow);
-    const right = safeNumber(angles.rightElbow);
-    if (left == null && right == null) return null;
-    if (left == null) return right;
-    if (right == null) return left;
-    return Math.round((left + right) / 2);
-  }, [angles, mode]);
+  const selectedPrimaryAngle = useMemo(
+    () => getAngleForMode(angles, mode),
+    [angles, mode]
+  );
 
   const currentCriteria = useMemo(
     () => criteriaFor(mode, selectedPrimaryAngle),
@@ -103,52 +185,24 @@ export default function TechniquePage() {
 
       setAngles(newAngles);
 
-      const currentAngle =
-        mode === 'squat'
-          ? (() => {
-              const l = safeNumber(newAngles?.leftKnee);
-              const r = safeNumber(newAngles?.rightKnee);
-              if (l == null && r == null) return null;
-              if (l == null) return r;
-              if (r == null) return l;
-              return (l + r) / 2;
-            })()
-          : (() => {
-              const l = safeNumber(newAngles?.leftElbow);
-              const r = safeNumber(newAngles?.rightElbow);
-              if (l == null && r == null) return null;
-              if (l == null) return r;
-              if (r == null) return l;
-              return (l + r) / 2;
-            })();
-
+      const currentAngle = getAngleForMode(newAngles, mode);
       if (currentAngle == null) return;
 
       samplesRef.current.push(currentAngle);
 
-      // Conteo simple de repeticiones por cambio de fase
-      if (mode === 'squat') {
-        if (currentAngle < 100 && phaseRef.current === 'up') {
-          phaseRef.current = 'down';
-        } else if (currentAngle > 150 && phaseRef.current === 'down') {
-          phaseRef.current = 'up';
-          repCountRef.current += 1;
-        }
-      } else {
-        if (currentAngle < 65 && phaseRef.current === 'up') {
-          phaseRef.current = 'down';
-        } else if (currentAngle > 145 && phaseRef.current === 'down') {
-          phaseRef.current = 'up';
-          repCountRef.current += 1;
-        }
+      const { down, up } = PHASE_THRESHOLDS[mode] ?? { down: 90, up: 150 };
+
+      if (currentAngle < down && phaseRef.current === 'up') {
+        phaseRef.current = 'down';
+      } else if (currentAngle > up && phaseRef.current === 'down') {
+        phaseRef.current = 'up';
+        repCountRef.current += 1;
       }
     },
     [mode]
   );
 
-  const handleReady = useCallback(() => {
-    setModelLoading(false);
-  }, []);
+  const handleReady = useCallback(() => { setModelLoading(false); }, []);
 
   const handleError = useCallback((message) => {
     setTrackingError(message || 'No se pudo iniciar la camara o el modelo');
@@ -172,9 +226,9 @@ export default function TechniquePage() {
     const valid = samplesRef.current.filter((n) => Number.isFinite(n));
     if (!valid.length) return;
 
-    const average = avg(valid);
-    const min = Math.min(...valid);
-    const max = Math.max(...valid);
+    const average  = avg(valid);
+    const min      = Math.min(...valid);
+    const max      = Math.max(...valid);
     const goodFrames = valid.filter((a) => criteriaFor(mode, a).status === 'good').length;
     const durationSec = Math.max(1, Math.round((Date.now() - startedAtRef.current) / 1000));
 
@@ -191,33 +245,31 @@ export default function TechniquePage() {
       lastMessage: currentCriteria.message,
     };
 
-    const next = [item, ...history].slice(0, 30);
-    persistHistory(next);
+    persistHistory([item, ...history].slice(0, 30));
   };
 
   const startTracking = () => {
     setTrackingError('');
     setModelLoading(true);
     setAngles(null);
-    modelReadyRef.current = false;
-    repCountRef.current = 0;
-    phaseRef.current = 'up';
-    samplesRef.current = [];
-    startedAtRef.current = Date.now();
+    modelReadyRef.current  = false;
+    repCountRef.current    = 0;
+    phaseRef.current       = 'up';
+    samplesRef.current     = [];
+    startedAtRef.current   = Date.now();
     setTrackingEnabled(true);
   };
 
   const stopTracking = () => {
     setTrackingEnabled(false);
     setModelLoading(false);
-    if (samplesRef.current.length > 0) {
-      saveCurrentAnalysis();
-    }
+    if (samplesRef.current.length > 0) saveCurrentAnalysis();
   };
 
-  const clearHistory = () => {
-    persistHistory([]);
-  };
+  const angleDisplays = useMemo(
+    () => getAngleDisplays(mode, angles),
+    [mode, angles]
+  );
 
   return (
     <div className="technique-page">
@@ -239,7 +291,12 @@ export default function TechniquePage() {
             Ejercicio a corregir
             <select value={mode} onChange={(e) => setMode(e.target.value)} disabled={trackingEnabled}>
               <option value="squat">Sentadilla</option>
+              <option value="lunge">Estocada (cuadriceps)</option>
               <option value="curl">Curl de biceps</option>
+              <option value="press">Press de pecho</option>
+              <option value="tricep">Extension de triceps</option>
+              <option value="row">Remo (espalda)</option>
+              <option value="shoulderpress">Press de hombros</option>
             </select>
           </label>
 
@@ -261,10 +318,9 @@ export default function TechniquePage() {
             <PoseCamera videoRef={videoRef} canvasRef={canvasRef} loading={modelLoading} />
 
             <div className="angles-grid">
-              <PoseFeedback label="Codo izq." joint="elbow" angle={angles?.leftElbow} />
-              <PoseFeedback label="Codo der." joint="elbow" angle={angles?.rightElbow} />
-              <PoseFeedback label="Rodilla izq." joint="knee" angle={angles?.leftKnee} />
-              <PoseFeedback label="Rodilla der." joint="knee" angle={angles?.rightKnee} />
+              {angleDisplays.map((d) => (
+                <PoseFeedback key={d.label} label={d.label} joint={d.joint} angle={d.angle} />
+              ))}
             </div>
 
             <div className="technique-live-panel">
@@ -288,7 +344,7 @@ export default function TechniquePage() {
           <div className="technique-history-head">
             <h2>Historial de correcciones</h2>
             {history.length > 0 && (
-              <button className="clear-history-btn" onClick={clearHistory}>
+              <button className="clear-history-btn" onClick={() => persistHistory([])}>
                 Limpiar historial
               </button>
             )}
@@ -301,7 +357,7 @@ export default function TechniquePage() {
               {history.map((h) => (
                 <article key={h.id} className="history-item">
                   <div className="history-top">
-                    <strong>{h.mode === 'squat' ? 'Sentadilla' : 'Curl de biceps'}</strong>
+                    <strong>{MODE_LABELS[h.mode] ?? h.mode}</strong>
                     <span>{new Date(h.createdAt).toLocaleString()}</span>
                   </div>
                   <div className="history-metrics">

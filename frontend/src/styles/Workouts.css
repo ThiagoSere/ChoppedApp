@@ -157,6 +157,39 @@
   box-shadow: 0 4px 12px rgba(224, 53, 53, 0.25);
 }
 
+.delete-confirm-inline {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.delete-confirm-text {
+  font-size: 12px;
+  color: var(--error);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+.cancel-inline-btn {
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  padding: 8px 14px;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  transition: all 0.2s;
+}
+
+.cancel-inline-btn:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text-primary);
+}
+
 .loading,
 .no-workouts {
   max-width: 1200px;

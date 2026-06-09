@@ -194,6 +194,41 @@
 
 .cancel-btn:hover { background: rgba(255,255,255,0.1); }
 
+.avatar-upload-row {
+  display: flex;
+  gap: 8px;
+  align-items: stretch;
+  margin-bottom: 16px;
+}
+
+.avatar-upload-row .profile-input {
+  flex: 1;
+  margin-bottom: 0;
+}
+
+.upload-file-btn {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  padding: 11px 14px;
+  border-radius: var(--r-md);
+  border: 1px solid rgba(61, 139, 239, 0.35);
+  background: rgba(61, 139, 239, 0.1);
+  color: var(--blue-bright);
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.upload-file-btn:hover {
+  background: rgba(61, 139, 239, 0.2);
+}
+
 .ok-msg {
   margin-top: 10px;
   color: var(--success);

@@ -51,4 +51,9 @@ export class TrainingSessionsService {
       order: { createdAt: 'DESC' },
     });
   }
+
+  async clearMine(userId: string): Promise<{ deleted: number }> {
+    const result = await this.sessionsRepo.delete({ userId });
+    return { deleted: result.affected ?? 0 };
+  }
 }

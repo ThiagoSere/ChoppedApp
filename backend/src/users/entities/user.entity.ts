@@ -17,7 +17,7 @@ export class User {
   @Column({ type: 'varchar', length: 120, nullable: true })
   alias!: string | null;
 
-  @Column({ type: 'varchar', length: 500, nullable: true })
+  @Column({ type: 'text', nullable: true })
   profileImageUrl!: string | null;
 
   @Column({ type: 'varchar', length: 255, unique: true })

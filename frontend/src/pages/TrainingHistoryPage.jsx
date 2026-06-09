@@ -9,6 +9,7 @@ export default function TrainingHistoryPage() {
   const [sessions, setSessions] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [confirmClear, setConfirmClear] = useState(false);
 
   useEffect(() => {
     const loadSessions = async () => {
@@ -28,14 +29,41 @@ export default function TrainingHistoryPage() {
     loadSessions();
   }, []);
 
+  const clearHistory = async () => {
+    try {
+      await api.delete('/training-sessions/mine');
+      setSessions([]);
+    } catch (err) {
+      const msg = err?.response?.data?.message;
+      setError(Array.isArray(msg) ? msg.join(', ') : msg || 'Error al limpiar historial');
+    } finally {
+      setConfirmClear(false);
+    }
+  };
+
   return (
     <div className="history-container">
       <div className="history-card">
         <div className="history-top">
           <h1>Historial de entrenamientos</h1>
-          <button className="ghost-btn" onClick={() => navigate('/dashboard')}>
-            Volver
-          </button>
+          <div className="history-top-actions">
+            {sessions.length > 0 && (
+              confirmClear ? (
+                <div className="history-clear-confirm">
+                  <span className="history-clear-text">Eliminar todo?</span>
+                  <button className="history-delete-btn" onClick={clearHistory}>Si</button>
+                  <button className="ghost-btn" onClick={() => setConfirmClear(false)}>Cancelar</button>
+                </div>
+              ) : (
+                <button className="history-delete-btn" onClick={() => setConfirmClear(true)}>
+                  Limpiar historial
+                </button>
+              )
+            )}
+            <button className="ghost-btn" onClick={() => navigate('/dashboard')}>
+              Volver
+            </button>
+          </div>
         </div>
 
         {loading && <p className="history-muted">Cargando historial...</p>}

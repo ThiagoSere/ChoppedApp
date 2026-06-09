@@ -20,6 +20,74 @@
   font-size: 26px;
 }
 
+.gymmap-controls {
+  max-width: 1100px;
+  margin: 0 auto 10px;
+  display: flex;
+  align-items: flex-end;
+  gap: 20px;
+  flex-wrap: wrap;
+  padding: 14px 16px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+
+.gymmap-control-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.gymmap-control-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.gymmap-slider {
+  width: 160px;
+  accent-color: var(--blue-bright);
+  cursor: pointer;
+}
+
+.gymmap-select {
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-size: 13px;
+  cursor: pointer;
+  min-width: 140px;
+}
+
+.gymmap-search-btn {
+  padding: 9px 20px;
+  border-radius: 8px;
+  border: none;
+  background: var(--blue-bright);
+  color: #fff;
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: filter 0.2s;
+  align-self: flex-end;
+}
+
+.gymmap-search-btn:hover:not(:disabled) {
+  filter: brightness(1.1);
+}
+
+.gymmap-search-btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
 .gymmap-subtitle {
   max-width: 1100px;
   margin: 0 auto 14px;
@@ -65,4 +133,24 @@
   border-radius: 10px;
   padding: 10px 12px;
   font-size: 13px;
+}
+
+.gymmap-list-addr {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.gymmap-chain-badge {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 7px;
+  border-radius: 20px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  background: rgba(61, 139, 239, 0.15);
+  color: var(--blue-bright);
+  vertical-align: middle;
 }

@@ -49,6 +49,17 @@ function calcAngles(landmarks) {
       landmarks[LANDMARKS.RIGHT_KNEE],
       landmarks[LANDMARKS.RIGHT_ANKLE]
     ),
+    // Ángulo en articulación del hombro (codo-hombro-cadera) — usado en press, remo
+    leftShoulder: calcAngle(
+      landmarks[LANDMARKS.LEFT_ELBOW],
+      landmarks[LANDMARKS.LEFT_SHOULDER],
+      landmarks[LANDMARKS.LEFT_HIP]
+    ),
+    rightShoulder: calcAngle(
+      landmarks[LANDMARKS.RIGHT_ELBOW],
+      landmarks[LANDMARKS.RIGHT_SHOULDER],
+      landmarks[LANDMARKS.RIGHT_HIP]
+    ),
   };
 }
 

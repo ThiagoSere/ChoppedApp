@@ -22,6 +22,45 @@
   align-items: center;
   gap: 12px;
   margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.history-top-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.history-delete-btn {
+  border: 1px solid rgba(224, 53, 53, 0.4);
+  border-radius: 8px;
+  padding: 8px 12px;
+  background: transparent;
+  color: var(--error);
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  transition: all 0.2s;
+}
+
+.history-delete-btn:hover {
+  background: var(--error);
+  color: #fff;
+}
+
+.history-clear-confirm {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.history-clear-text {
+  font-size: 12px;
+  color: var(--error);
+  font-weight: 600;
 }
 
 .history-top h1 {

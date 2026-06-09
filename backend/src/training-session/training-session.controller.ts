@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Post, Req, UseGuards } from '@nestjs/common';
 import { Request } from 'express';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { TrainingSessionsService } from './training-session.service';
@@ -20,5 +20,10 @@ export class TrainingSessionsController {
   @Get('mine')
   mine(@Req() req: Request & { user: { userId: string } }) {
     return this.sessionsService.mine(req.user.userId);
+  }
+
+  @Delete('mine')
+  clearMine(@Req() req: Request & { user: { userId: string } }) {
+    return this.sessionsService.clearMine(req.user.userId);
   }
 }

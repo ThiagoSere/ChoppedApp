@@ -1,4 +1,4 @@
-import { Injectable, InternalServerErrorException, Logger } from '@nestjs/common';
+import { Injectable, InternalServerErrorException, Logger, NotFoundException } from '@nestjs/common';
 
 type ExerciseDbItem = {
   id: string;
@@ -7,6 +7,15 @@ type ExerciseDbItem = {
   target?: string;
   equipment?: string;
   gifUrl?: string;
+};
+
+type FreeApiItem = {
+  exerciseId: string;
+  name: string;
+  gifUrl?: string;
+  bodyParts?: string[];
+  targetMuscles?: string[];
+  equipments?: string[];
 };
 
 type SearchPreset =
@@ -24,6 +33,7 @@ export class ExercisesService {
   private readonly apiKey = process.env.EXERCISE_DB_API_KEY || '';
   private readonly publicApiUrl =
     process.env.PUBLIC_API_URL || 'http://localhost:3001';
+  private readonly freeApiUrl = 'https://oss.exercisedb.dev/api/v1';
 
   private readonly muscleMap: Record<string, SearchPreset> = {
     pecho: { kind: 'bodyPart', value: 'chest' },
@@ -72,9 +82,9 @@ export class ExercisesService {
     };
   }
 
-  private async fetchExerciseDbJson(url: string): Promise<ExerciseDbItem[]> {
+  private async fetchExerciseDbJson(url: string, headers?: Record<string, string>): Promise<ExerciseDbItem[]> {
     const response = await fetch(url, {
-      headers: this.getRapidHeaders(),
+      headers: headers ?? {},
     });
 
     if (!response.ok) {
@@ -85,6 +95,17 @@ export class ExercisesService {
 
     const data = (await response.json()) as ExerciseDbItem[];
     return Array.isArray(data) ? data : [];
+  }
+
+  private async fetchFreeApiJson(url: string): Promise<FreeApiItem[]> {
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new InternalServerErrorException(
+        `Free ExerciseDB devolvio ${response.status}`,
+      );
+    }
+    const data = (await response.json()) as { success: boolean; data: FreeApiItem[] };
+    return Array.isArray(data?.data) ? data.data : [];
   }
 
   private async tryFetchBinary(
@@ -106,7 +127,6 @@ export class ExercisesService {
         return { ok: false, reason: `Body vacio en ${url}` };
       }
 
-      // Aceptamos contenido binario aunque no venga como image/* para evitar falsos negativos.
       return {
         ok: true,
         buffer,
@@ -151,7 +171,7 @@ export class ExercisesService {
     const safeId = encodeURIComponent(id);
     const reasons: string[] = [];
 
-    // 1) RapidAPI image endpoint por query param (versiones comunes)
+    // 1) RapidAPI image endpoint (when API key is set)
     if (this.apiKey) {
       const rapidHeaders = this.getRapidHeaders();
 
@@ -164,13 +184,10 @@ export class ExercisesService {
 
       for (const candidate of rapidCandidates) {
         const res = await this.tryFetchBinary(candidate, rapidHeaders);
-        if (res.ok) {
-          return { buffer: res.buffer, contentType: res.contentType };
-        }
+        if (res.ok) return { buffer: res.buffer, contentType: res.contentType };
         reasons.push(res.reason);
       }
 
-      // 2) Buscar gifUrl desde detalle del ejercicio
       const fromDetail = await this.tryFetchGifFromExerciseDetail(id);
       if (fromDetail) return fromDetail;
       reasons.push('No se pudo obtener GIF desde detalle del ejercicio');
@@ -178,50 +195,64 @@ export class ExercisesService {
       reasons.push('Sin EXERCISE_DB_API_KEY para endpoints RapidAPI');
     }
 
-    // 3) Fallback público alternativo
-    const publicCandidate = `https://v2.exercisedb.io/image/${safeId}`;
-    const publicRes = await this.tryFetchBinary(publicCandidate);
-    if (publicRes.ok) {
-      return { buffer: publicRes.buffer, contentType: publicRes.contentType };
+    // 2) Free OSS ExerciseDB CDN
+    const ossCandidates = [
+      `https://static.exercisedb.dev/media/${id}.gif`,
+      `https://static.exercisedb.dev/media/${safeId}.gif`,
+    ];
+    for (const candidate of ossCandidates) {
+      const res = await this.tryFetchBinary(candidate);
+      if (res.ok) return { buffer: res.buffer, contentType: res.contentType };
+      reasons.push(res.reason);
     }
-    reasons.push(publicRes.reason);
 
-    this.logger.error(`Fallo GIF ${id}: ${reasons.join(' | ')}`);
-
-    throw new InternalServerErrorException(
-      `No se pudo descargar GIF desde ninguna fuente (${reasons.join(' | ')})`,
-    );
+    this.logger.warn(`GIF no disponible para ${id}`);
+    throw new NotFoundException(`GIF no disponible para el ejercicio ${id}`);
   }
 
   async search(query: string, limit = 5) {
-    if (!this.apiKey) {
-      throw new InternalServerErrorException(
-        'Falta EXERCISE_DB_API_KEY en variables de entorno',
-      );
-    }
-
-    const safeLimit = Math.max(1, Math.min(limit, 20));
+    const safeLimit = Math.max(1, Math.min(limit, 50));
     const normalized = this.normalizeText(query || 'pecho');
     const preset = this.muscleMap[normalized];
 
+    // Use free API when no RapidAPI key is configured
+    if (!this.apiKey) {
+      let url: string;
+      if (preset) {
+        if (preset.kind === 'bodyPart') {
+          url = `${this.freeApiUrl}/exercises?bodyParts=${encodeURIComponent(preset.value)}&limit=${safeLimit}`;
+        } else {
+          url = `${this.freeApiUrl}/exercises?targetMuscles=${encodeURIComponent(preset.value)}&limit=${safeLimit}`;
+        }
+      } else {
+        url = `${this.freeApiUrl}/exercises?name=${encodeURIComponent(normalized)}&limit=${safeLimit}`;
+      }
+
+      const data = await this.fetchFreeApiJson(url);
+      return data.slice(0, safeLimit).map((e) => ({
+        exerciseId: e.exerciseId,
+        name: e.name,
+        bodyPart: e.bodyParts?.[0] ?? '',
+        target: e.targetMuscles?.[0] ?? '',
+        equipment: e.equipments?.[0] ?? '',
+        gifUrl: this.normalizeUrl(e.gifUrl) || this.buildGifProxyUrl(e.exerciseId),
+      }));
+    }
+
+    // RapidAPI path
+    const headers = this.getRapidHeaders();
     let url: string;
     if (preset) {
       if (preset.kind === 'bodyPart') {
-        url = `${this.baseUrl}/exercises/bodyPart/${encodeURIComponent(
-          preset.value,
-        )}?offset=0&limit=${safeLimit}`;
+        url = `${this.baseUrl}/exercises/bodyPart/${encodeURIComponent(preset.value)}?offset=0&limit=${safeLimit}`;
       } else {
-        url = `${this.baseUrl}/exercises/target/${encodeURIComponent(
-          preset.value,
-        )}?offset=0&limit=${safeLimit}`;
+        url = `${this.baseUrl}/exercises/target/${encodeURIComponent(preset.value)}?offset=0&limit=${safeLimit}`;
       }
     } else {
-      url = `${this.baseUrl}/exercises/name/${encodeURIComponent(
-        normalized,
-      )}?offset=0&limit=${safeLimit}`;
+      url = `${this.baseUrl}/exercises/name/${encodeURIComponent(normalized)}?offset=0&limit=${safeLimit}`;
     }
 
-    const data = await this.fetchExerciseDbJson(url);
+    const data = await this.fetchExerciseDbJson(url, headers);
 
     return data.slice(0, safeLimit).map((e) => ({
       exerciseId: e.id,

@@ -12,6 +12,7 @@ export default function WorkoutsPage() {
   const [creatingFromPresetId, setCreatingFromPresetId] = useState('');
   const [error, setError] = useState('');
   const [section, setSection] = useState('mine'); // mine | preset
+  const [confirmDeleteId, setConfirmDeleteId] = useState(null);
 
   const loadWorkouts = async () => {
     setLoading(true);
@@ -28,13 +29,14 @@ export default function WorkoutsPage() {
   };
 
   const deleteWorkout = async (id) => {
-    if (!window.confirm('Eliminar esta rutina?')) return;
     try {
       await api.delete(`/workouts/${id}`);
       setMyWorkouts((prev) => prev.filter((w) => w.id !== id));
     } catch (err) {
       const msg = err?.response?.data?.message;
       setError(Array.isArray(msg) ? msg.join(', ') : msg || 'Error al eliminar rutina');
+    } finally {
+      setConfirmDeleteId(null);
     }
   };
 
@@ -120,9 +122,17 @@ export default function WorkoutsPage() {
             <button onClick={() => navigate(`/workouts/${workout.id}/edit`)} className="edit-btn">
               Editar
             </button>
-            <button onClick={() => deleteWorkout(workout.id)} className="delete-btn">
-              Eliminar
-            </button>
+            {confirmDeleteId === workout.id ? (
+              <span className="delete-confirm-inline">
+                <span className="delete-confirm-text">Eliminar rutina?</span>
+                <button onClick={() => deleteWorkout(workout.id)} className="delete-btn">Si</button>
+                <button onClick={() => setConfirmDeleteId(null)} className="cancel-inline-btn">Cancelar</button>
+              </span>
+            ) : (
+              <button onClick={() => setConfirmDeleteId(workout.id)} className="delete-btn">
+                Eliminar
+              </button>
+            )}
           </>
         )}
       </div>
