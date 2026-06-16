@@ -443,6 +443,12 @@ body {
   background: rgba(0, 0, 0, 0.04);
 }
 
+[data-theme="light"] .technique-controls select,
+[data-theme="light"] .technique-controls select option {
+  background: #ffffff;
+  color: #1a1a2e;
+}
+
 /* Card / panel subtle backgrounds */
 [data-theme="light"] .search-box,
 [data-theme="light"] .result-item,

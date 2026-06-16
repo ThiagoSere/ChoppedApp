@@ -61,10 +61,15 @@
 .technique-controls select {
   min-width: 220px;
   border: 1px solid var(--border);
-  background: rgba(255, 255, 255, 0.04);
-  color: var(--text-primary);
+  background: #111f35;
+  color: #ffffff;
   border-radius: 8px;
   padding: 9px 10px;
+}
+
+.technique-controls select option {
+  background: #111f35;
+  color: #ffffff;
 }
 
 .technique-toggle-btn {
